@@ -724,7 +724,7 @@ fn build_project_window(app: &AppHandle, mut config: WindowConfig) -> IdeResult<
     #[cfg(target_os = "linux")]
     let show_after_build = crate::linux_window_state::prepare(app, &mut config);
     let window = WebviewWindowBuilder::from_config(app, &config)
-        .and_then(|b| dev_font_preferences(b).build())
+        .and_then(|b| dev_font_preferences(b).enable_clipboard_access().build())
         .map_err(|e| IdeError::internal(format!("cannot create window: {e}")))?;
     #[cfg(target_os = "linux")]
     decorate_csd(&window);
