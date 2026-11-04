@@ -3561,6 +3561,8 @@ export type CommitSettings = {
 	nonModal?: boolean,
 	/**  Start with an empty message instead of the last one / the changelist's. */
 	clearInitialMessage?: boolean,
+	/**  Changed files start checked for commit; off = only files already staged do. */
+	includeChangesByDefault?: boolean,
 	analyzeCode?: boolean,
 	checkTodo?: boolean,
 	reformat?: boolean,

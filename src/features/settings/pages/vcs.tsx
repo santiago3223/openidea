@@ -413,6 +413,12 @@ export const VCS_PAGES: PageSpec[] = [
             hint: "When off, Local Changes and Stash are tabs of the Git tool window and Commit opens a dialog.",
           },
           { kind: "toggle", key: "vcs.commit.clearInitialMessage", label: "Clear initial commit message" },
+          {
+            kind: "toggle",
+            key: "vcs.commit.includeChangesByDefault",
+            label: "Include changed files in the commit by default",
+            hint: "When off, only the files you check and the files already staged are committed.",
+          },
         ],
       },
       {

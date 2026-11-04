@@ -107,20 +107,24 @@ export function moveFiles(state: ChangelistState, rels: readonly string[], id: s
 }
 
 /**
- * Like IDEA, only the active list's changes are included in a commit by default:
- * files of other lists without an explicit checkbox state start excluded.
+ * The inclusion of files without an explicit checkbox state. Like IDEA, files of other
+ * change lists start excluded. With `includeByDefault` off so do unstaged files of the
+ * active list: what `git add` staged stays in, since excluding it would unstage it.
  */
-export function withListDefaults(
+export function withCommitDefaults(
   status: readonly FileStatus[],
   root: string,
   state: ChangelistState,
   checks: ReadonlyMap<string, CheckState>,
+  includeByDefault: boolean,
 ): Map<string, CheckState> {
   const out = new Map(checks);
-  if (state.lists.length < 2) return out;
+  const severalLists = state.lists.length >= 2;
+  if (!severalLists && includeByDefault) return out;
   for (const f of status) {
     if (out.has(f.path) || groupOf(f) !== "changes") continue;
-    if (listOf(state, relTo(root, stripSlash(f.path))) !== state.active) out.set(f.path, "none");
+    const otherList = severalLists && listOf(state, relTo(root, stripSlash(f.path))) !== state.active;
+    if (otherList || (!includeByDefault && !f.staged)) out.set(f.path, "none");
   }
   return out;
 }

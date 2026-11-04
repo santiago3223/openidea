@@ -114,6 +114,8 @@ pub struct CommitSettings {
     pub non_modal: bool,
     /// Start with an empty message instead of the last one / the changelist's.
     pub clear_initial_message: bool,
+    /// Changed files start checked for commit; off = only files already staged do.
+    pub include_changes_by_default: bool,
     pub analyze_code: bool,
     pub check_todo: bool,
     pub reformat: bool,
@@ -144,6 +146,7 @@ impl Default for CommitSettings {
         Self {
             non_modal: true,
             clear_initial_message: false,
+            include_changes_by_default: false,
             analyze_code: true,
             check_todo: true,
             reformat: false,

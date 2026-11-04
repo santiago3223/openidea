@@ -24,6 +24,7 @@ import { commitChanges } from "../changeOps";
 import { draftRevision, installDraftRevision, provideCommit } from "../commitSelection";
 import { useCommit } from "../commitStore";
 import { useVcs } from "../store";
+import { useProject } from "@/platform/project";
 
 const files: FileStatus[] = ["a", "b"].map((n) => ({
   path: `/p/${n}.ts`,
@@ -37,6 +38,7 @@ let disposers: Array<() => void> = [];
 
 beforeEach(() => {
   localStorage.clear();
+  useProject.setState({ settings: { vcs: { commit: { includeChangesByDefault: true } } } as never });
   commit.mockClear();
   createPatch.mockClear();
   useVcs.setState({

@@ -24,6 +24,7 @@ import type { FileStatus } from "@/bindings";
 import { commitChanges } from "../changeOps";
 import { useCommit } from "../commitStore";
 import { useVcs } from "../store";
+import { useProject } from "@/platform/project";
 
 const files: FileStatus[] = Array.from({ length: 20 }, (_, i) => ({
   path: `/p/src/f${i}.ts`,
@@ -39,6 +40,7 @@ describe("changes left out of a commit (#1539)", () => {
   beforeEach(() => {
     localStorage.clear();
     unstage.mockClear();
+    useProject.setState({ settings: { vcs: { commit: { includeChangesByDefault: true } } } as never });
     stage.mockClear();
     commit.mockClear();
     useVcs.setState({

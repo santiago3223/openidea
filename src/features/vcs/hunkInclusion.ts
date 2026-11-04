@@ -9,8 +9,9 @@ import { EditorView, GutterMarker, ViewPlugin, gutter, type ViewUpdate } from "@
 import type { LineHunk } from "@/bindings";
 import { tx } from "@/platform/i18n";
 import { commands } from "@/platform/ipc";
+import { workflowSettings } from "@/platform/workflowSettings";
 import { checkOf, hunkIncluded, toggledHunk } from "./changes";
-import { useChangelists, withListDefaults } from "./changelists";
+import { useChangelists, withCommitDefaults } from "./changelists";
 import { stagingAreaOn } from "./staging";
 import { useCommit } from "./commitStore";
 import { hunkKeys } from "./hunks";
@@ -38,7 +39,8 @@ function inclusionOf(path: string) {
   if (!fs || stagingAreaOn()) return null;
   const { status, root } = useVcs.getState();
   const { checks, excludedHunks } = useCommit.getState();
-  const effective = withListDefaults(status, root ?? "", useChangelists.getState().state, checks);
+  const includeByDefault = workflowSettings().vcs.commit.includeChangesByDefault;
+  const effective = withCommitDefaults(status, root ?? "", useChangelists.getState().state, checks, includeByDefault);
   return { key: fs.path, check: checkOf(fs, effective), excluded: excludedHunks.get(fs.path) };
 }
 

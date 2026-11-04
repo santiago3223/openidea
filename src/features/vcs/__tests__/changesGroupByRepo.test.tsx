@@ -63,7 +63,7 @@ describe("Group By › Repository in the changes tree", () => {
     });
     useProject.setState({
       project: { name: "p", root: "/p", trusted: true, isGit: true, settings: {} } as never,
-      settings: {} as never,
+      settings: { vcs: { commit: { includeChangesByDefault: true } } } as never,
     });
     useVcs.setState({
       root: "/p",

@@ -6,7 +6,7 @@
 import type { ChangelistState, FileStatus } from "@/bindings";
 import { useWorkflowSettings, workflowSettings } from "@/platform/workflowSettings";
 import { addedThenDeleted, groupOf, type CheckState } from "./changes";
-import { withListDefaults } from "./changelists";
+import { withCommitDefaults } from "./changelists";
 
 const enabled = (vcs: { git: { stagingArea: boolean }; commit: { nonModal: boolean } }) =>
   vcs.git.stagingArea && vcs.commit.nonModal;
@@ -46,6 +46,7 @@ export function inclusionChecks(
   lists: ChangelistState,
   checks: ReadonlyMap<string, CheckState>,
   staging = stagingAreaOn(),
+  includeByDefault = workflowSettings().vcs.commit.includeChangesByDefault,
 ): Map<string, CheckState> {
-  return staging ? stagingChecks(status) : withListDefaults(status, root, lists, checks);
+  return staging ? stagingChecks(status) : withCommitDefaults(status, root, lists, checks, includeByDefault);
 }

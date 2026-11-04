@@ -3,7 +3,7 @@
  * parts also make the Git window's Local Changes / Stash tabs and the Commit dialog.
  */
 import { writeClipboardText } from "@/platform/clipboard";
-import { useWorkflowSettings } from "@/platform/workflowSettings";
+import { useWorkflowSettings, workflowSettings } from "@/platform/workflowSettings";
 import { formatBinding, isMacHost, macStroke, normalizeBinding, shortcutLabel, strokeOf } from "@/platform/keymap";
 import {
   useCallback,
@@ -66,7 +66,7 @@ import {
 } from "./changes";
 import { applyStash, commitChanges, deleteFiles, dropStash, showUnstashDialog, stashChanges } from "./changeOps";
 import { CommitOptionsPopup } from "./CommitOptions";
-import { DEFAULT_LIST_NAME, useChangelists, withListDefaults } from "./changelists";
+import { DEFAULT_LIST_NAME, useChangelists, withCommitDefaults } from "./changelists";
 import { inclusionChecks, isCommitAll, useStagingArea } from "./staging";
 import { addToChangelist, commitFiles } from "./changelistsUi";
 import { acceptSide } from "./conflictsUi";
@@ -518,9 +518,10 @@ function useCommitChecks() {
   const userChecks = useCommit((s) => s.checks);
   const lists = useChangelists((s) => s.state);
   const staging = useStagingArea();
+  const includeByDefault = useWorkflowSettings((s) => s.vcs.commit.includeChangesByDefault);
   return useMemo(
-    () => inclusionChecks(status, root, lists, userChecks, staging),
-    [status, root, lists, userChecks, staging],
+    () => inclusionChecks(status, root, lists, userChecks, staging, includeByDefault),
+    [status, root, lists, userChecks, staging, includeByDefault],
   );
 }
 
@@ -746,7 +747,13 @@ export function ChangesTree({ mode }: { mode: "commit" | "local" | "dialog" }) {
   const toggle = useCallback((nodes: ChangeNode[]) => {
     const files = filesOf(nodes);
     const { status: st, root: r } = useVcs.getState();
-    const cur = withListDefaults(st, r ?? "", useChangelists.getState().state, useCommit.getState().checks);
+    const cur = withCommitDefaults(
+      st,
+      r ?? "",
+      useChangelists.getState().state,
+      useCommit.getState().checks,
+      workflowSettings().vcs.commit.includeChangesByDefault,
+    );
     const agg = aggregateCheck(files, cur);
     const target = agg.on === files.length && !agg.indeterminate ? "none" : "all";
     const next = new Map(cur);

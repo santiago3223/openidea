@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { ChangelistState, FileStatus } from "@/bindings";
-import { buildChangeTree, planCommit, type ChangeNode } from "../changes";
+import { buildChangeTree, planCommit, type ChangeNode, type CheckState } from "../changes";
 import {
   addList,
   checksForList,
@@ -13,7 +13,7 @@ import {
   setActiveList,
   syncAssignments,
   validateListName,
-  withListDefaults,
+  withCommitDefaults,
 } from "../changelists";
 
 const fs = (rel: string, staged: FileStatus["staged"], unstaged: FileStatus["unstaged"]): FileStatus => ({
@@ -141,14 +141,34 @@ describe("change list model", () => {
 
   it("includes only the active list in a commit by default", () => {
     const { state, feature } = twoLists();
-    const checks = withListDefaults(status, "/r", state, new Map());
+    const checks = withCommitDefaults(status, "/r", state, new Map(), true);
     expect(checks.get("/r/src/b.ts")).toBe("none");
     expect(planCommit(status, checks).included.map((f) => f.relPath)).toEqual(["src/a.ts", "README.md"]);
     // An explicit checkbox wins.
-    const explicit = withListDefaults(status, "/r", state, new Map([["/r/src/b.ts", "all" as const]]));
+    const explicit = withCommitDefaults(status, "/r", state, new Map([["/r/src/b.ts", "all" as const]]), true);
     expect(explicit.get("/r/src/b.ts")).toBe("all");
 
     const only = checksForList(status, "/r", state, feature);
     expect(planCommit(status, only).included.map((f) => f.relPath)).toEqual(["src/b.ts"]);
+  });
+
+  describe("with include-by-default off", () => {
+    const included = (files: FileStatus[], checks = new Map<string, CheckState>()) =>
+      planCommit(files, withCommitDefaults(files, "/r", initialChangelists(), checks, false));
+
+    it("starts unstaged changes unchecked, and an explicit check wins", () => {
+      const files = [fs("a.ts", null, "modified"), fs("gone.ts", null, "deleted")];
+      expect(included(files).included).toEqual([]);
+      const checked = new Map<string, CheckState>([["/r/a.ts", "all"]]);
+      expect(included(files, checked).included.map((f) => f.relPath)).toEqual(["a.ts"]);
+    });
+
+    it("keeps what is already staged, without staging or unstaging anything", () => {
+      const files = [fs("staged.ts", "modified", null), fs("partly.ts", "modified", "modified")];
+      const plan = included(files);
+      expect(plan.included.map((f) => f.relPath)).toEqual(["staged.ts", "partly.ts"]);
+      expect(plan.stage).toEqual([]);
+      expect(plan.exclude).toEqual([]);
+    });
   });
 });
