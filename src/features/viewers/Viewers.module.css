@@ -96,6 +96,101 @@
     8px 8px;
 }
 
+/* --- PDF viewer -------------------------------------------------------------- */
+
+.pdfScroll {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  overflow: auto;
+  scrollbar-gutter: stable;
+  outline: none;
+}
+.pdfPages {
+  flex: none;
+  position: relative;
+}
+.pdfPage {
+  position: absolute;
+  background: white;
+  box-shadow: 0 0 0 1px var(--border-strong);
+}
+.pdfCanvas,
+.pdfCanvas canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+/* pdf.js appends this text-measuring canvas to <body> and relies on its own stylesheet to hide it. */
+:global(.hiddenCanvasElement) {
+  display: none;
+}
+/* The layout rules pdf.js expects of its text layer; the spans are its own markup. */
+.pdfText {
+  --scale-round-x: 1px;
+  --scale-round-y: 1px;
+  --min-font-size: 1;
+  --text-scale-factor: calc(var(--total-scale-factor) * var(--min-font-size));
+  --min-font-size-inv: calc(1 / var(--min-font-size));
+  position: absolute;
+  inset: 0;
+  overflow: clip;
+  text-align: initial;
+  line-height: 1;
+  letter-spacing: normal;
+  word-spacing: normal;
+  text-size-adjust: none;
+  forced-color-adjust: none;
+  transform-origin: 0 0;
+}
+.pdfText[data-main-rotation="90"] {
+  transform: rotate(90deg) translateY(-100%);
+}
+.pdfText[data-main-rotation="180"] {
+  transform: rotate(180deg) translate(-100%, -100%);
+}
+.pdfText[data-main-rotation="270"] {
+  transform: rotate(270deg) translateX(-100%);
+}
+.pdfText :is(span, br) {
+  position: absolute;
+  color: transparent;
+  white-space: pre;
+  cursor: text;
+  transform-origin: 0% 0%;
+  user-select: text;
+}
+.pdfText > :not(:global(.markedContent)),
+.pdfText :global(.markedContent) span:not(:global(.markedContent)) {
+  --font-height: 0;
+  --scale-x: 1;
+  --rotate: 0deg;
+  z-index: 1;
+  font-size: calc(var(--text-scale-factor) * var(--font-height));
+  transform: rotate(var(--rotate)) scaleX(var(--scale-x)) scale(var(--min-font-size-inv));
+}
+.pdfText :global(.markedContent) {
+  display: contents;
+}
+.pdfText ::selection {
+  background: color-mix(in srgb, var(--bg-editor-selection), transparent 50%);
+  color: transparent;
+}
+.pdfText br::selection {
+  background: transparent;
+}
+.pdfText :global(.endOfContent) {
+  display: block;
+  position: absolute;
+  inset: 100% 0 0;
+  z-index: 0;
+  cursor: default;
+  user-select: none;
+}
+.pdfText:global(.selecting) :global(.endOfContent) {
+  top: 0;
+}
+
 /* --- hex view ---------------------------------------------------------------- */
 
 .hexScroll {

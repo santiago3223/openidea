@@ -76,8 +76,8 @@ const shared = [
     "github.pullRequest.refresh",
     "github.pullRequest.timeline.refresh",
   ],
-  ["editor.increaseFontSize", "image.zoomIn"],
-  ["editor.decreaseFontSize", "image.zoomOut"],
+  ["editor.increaseFontSize", "image.zoomIn", "pdf.zoomIn"],
+  ["editor.decreaseFontSize", "image.zoomOut", "pdf.zoomOut"],
 ];
 
 describe.each(presets)("%s", (preset, title, km, parent, mod) => {

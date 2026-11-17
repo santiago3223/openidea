@@ -2384,5 +2384,12 @@
   "Use Conventional Commits (feat:, fix:, …) and start with the issue key if the branch has one.": "Use Conventional Commits (feat:, fix:, …) and start with the issue key if the branch has one.",
   "Choose Include Path": "Choose Include Path",
   "Include changed files in the commit by default": "Include changed files in the commit by default",
-  "When off, only the files you check and the files already staged are committed.": "When off, only the files you check and the files already staged are committed."
+  "When off, only the files you check and the files already staged are committed.": "When off, only the files you check and the files already staged are committed.",
+  "PDF": "PDF",
+  "PDF viewer": "PDF viewer",
+  "Fit Width": "Fit Width",
+  "Page {number}": "Page {number}",
+  "Cannot show the PDF: {error}": "Cannot show the PDF: {error}",
+  "the file is too large to preview": "the file is too large to preview",
+  "the file is password protected": "the file is password protected"
 }

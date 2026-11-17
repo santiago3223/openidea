@@ -5,6 +5,7 @@ import type { FileProbe } from "@/platform/ipc";
 import { usePlatform } from "@/platform/platformInfo";
 
 export const IMAGE_KIND = "image";
+export const PDF_KIND = "pdf";
 export const BINARY_KIND = "binary";
 
 const IMAGE_EXTENSIONS = new Set(["png", "jpg", "jpeg", "gif", "webp", "svg", "ico", "bmp", "avif"]);
@@ -17,6 +18,7 @@ function extension(path: string): string {
 }
 
 export const isImagePath = (path: string) => IMAGE_EXTENSIONS.has(extension(path));
+export const isPdfPath = (path: string) => extension(path) === "pdf";
 export const isSvgPath = (path: string) => extension(path) === "svg";
 export const isMarkdownPath = (path: string) => MARKDOWN_EXTENSIONS.has(extension(path));
 
@@ -33,6 +35,8 @@ export function associatedApplication(
 }
 
 export const imageInput = (path: string): EditorInput => ({ kind: IMAGE_KIND, key: `image:${path}`, path });
+
+export const pdfInput = (path: string): EditorInput => ({ kind: PDF_KIND, key: `pdf:${path}`, path });
 
 export interface BinaryInputData {
   size: number;

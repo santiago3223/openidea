@@ -16,6 +16,12 @@ Copyright (C) 2009-2021 The Project Lombok Authors. MIT license and bundled comp
 notices are retained in [java/lombok/LICENSE](java/lombok/LICENSE) and inside the jar.
 Source tag, patch commits and build instructions: [java/lombok/README.md](java/lombok/README.md).
 
+## pdf.js
+
+The PDF viewer bundles [pdfjs-dist](https://github.com/mozilla/pdf.js) (Apache-2.0), Copyright
+Mozilla Foundation, with its CMaps, standard fonts and the OpenJPEG, JBIG2 and QCMS decoders.
+Their licences ship in the package (`LICENSE`, `wasm/LICENSE_*`).
+
 ## JetBrains IntelliJ Platform icons
 
 `src/ui/expui/**` contains SVG icons from the IntelliJ Platform "new UI" (expui)

@@ -1,6 +1,6 @@
 /**
  * Non-text editors and the Markdown preview: images open in an image viewer,
- * binary and very large files in a read-only hex view (both through file
+ * PDFs in a PDF viewer, binary and very large files in a read-only hex view (both through file
  * editor providers consulted by `openFile`), and Markdown files get IDEA's
  * Editor / Editor and Preview / Preview layouts around the text editor.
  */
@@ -23,14 +23,18 @@ import {
   BINARY_KIND,
   IMAGE_KIND,
   associatedApplication,
+  PDF_KIND,
   binaryInput,
   imageInput,
   isImagePath,
   isMarkdownPath,
+  isPdfPath,
+  pdfInput,
   wantsHexView,
 } from "./fileKinds";
 import { ImageViewer, toggleChessboard, useImageViewers } from "./ImageViewer";
 import { HexViewer } from "./HexViewer";
+import { usePdfViewers } from "./pdfStore";
 import { registerMarkdownLiveSource } from "./markdown/live";
 import { setMarkdownMode, type MarkdownMode } from "./markdown/modes";
 import { MarkdownLayoutActions } from "./markdown/MarkdownLayoutActions";
@@ -59,6 +63,25 @@ function imageActions(): Action[] {
       keywords: ["transparency", "background"],
       toggled: () => useImageViewers.getState().chessboard,
     }),
+  ];
+}
+
+function pdfActions(): Action[] {
+  const pdf = (id: string, title: string, icon: string, run: () => void): Action => ({
+    id,
+    title,
+    category: "PDF",
+    icon,
+    when: "pdfViewerActive",
+    keyWhen: "pdfViewerFocus",
+    run,
+  });
+  const active = () => usePdfViewers.getState().active;
+  return [
+    pdf("pdf.zoomIn", "Zoom In", "zoom-in", () => active()?.zoom(1)),
+    pdf("pdf.zoomOut", "Zoom Out", "zoom-out", () => active()?.zoom(-1)),
+    pdf("pdf.actualSize", "Actual Size", "actual-size", () => active()?.actualSize()),
+    pdf("pdf.fitWidth", "Fit Width", "maximize", () => active()?.fitWidth()),
   ];
 }
 
@@ -95,6 +118,12 @@ export function activate(): () => void {
       open: openWithSystemApp,
     }),
     registerEditorKind({ kind: IMAGE_KIND, component: ImageViewer, title: titleOf, icon: iconOf }),
+    registerEditorKind({
+      kind: PDF_KIND,
+      component: lazyComponent(() => import("./PdfViewer").then((m) => m.PdfViewer)),
+      title: titleOf,
+      icon: iconOf,
+    }),
     registerEditorKind({ kind: BINARY_KIND, component: HexViewer, title: titleOf, icon: iconOf }),
     registerFileEditorProvider({
       id: "viewers.image",
@@ -103,6 +132,11 @@ export function activate(): () => void {
         isImagePath(path) && !textEditorWrapperFor(useTextEditorWrappers.getState().wrappers, path)
           ? imageInput(path)
           : null,
+    }),
+    registerFileEditorProvider({
+      id: "viewers.pdf",
+      order: 20,
+      resolve: (path) => (isPdfPath(path) ? pdfInput(path) : null),
     }),
     registerFileEditorProvider({
       id: "viewers.hex",
@@ -124,7 +158,7 @@ export function activate(): () => void {
       tabActions: MarkdownLayoutActions,
     }),
     registerMarkdownLiveSource(),
-    registerActions([...imageActions(), ...markdownActions()]),
+    registerActions([...imageActions(), ...pdfActions(), ...markdownActions()]),
   ];
   return () => disposers.reverse().forEach((d) => d());
 }

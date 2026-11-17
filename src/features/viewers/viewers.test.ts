@@ -8,7 +8,9 @@ import {
   imageInput,
   isImagePath,
   isMarkdownPath,
+  isPdfPath,
   isSvgPath,
+  pdfInput,
   wantsHexView,
 } from "./fileKinds";
 import {
@@ -26,6 +28,17 @@ import {
   scrollTopForRow,
 } from "./hex";
 import { fitZoom, initialZoom, stepZoom, zoomAt, zoomLabel } from "./imageZoom";
+import {
+  PAGE_GAP,
+  anchorAt,
+  anchorY,
+  canvasScale,
+  layoutPages,
+  pageAt,
+  resolveZoom,
+  stepPdfZoom,
+  visiblePages,
+} from "./pdfLayout";
 
 describe("file kinds", () => {
   it("routes by extension", () => {
@@ -36,6 +49,8 @@ describe("file kinds", () => {
     expect(isSvgPath("/p/x.svg")).toBe(true);
     expect(isMarkdownPath("/p/README.md")).toBe(true);
     expect(isMarkdownPath("/p/notes.txt")).toBe(false);
+    expect(isPdfPath("/p/Report.PDF")).toBe(true);
+    expect(isPdfPath("/p/pdf")).toBe(false);
   });
 
   it("matches files opened with an associated application", () => {
@@ -51,6 +66,7 @@ describe("file kinds", () => {
 
   it("builds viewer inputs keyed apart from text tabs", () => {
     expect(imageInput("/a/b.png")).toEqual({ kind: "image", key: "image:/a/b.png", path: "/a/b.png" });
+    expect(pdfInput("/a/b.pdf")).toEqual({ kind: "pdf", key: "pdf:/a/b.pdf", path: "/a/b.pdf" });
     const input = binaryInput("/a/b.bin", { size: 10, binary: true, tooLarge: false });
     expect(input.key).toBe("binary:/a/b.bin");
     expect(input.data).toEqual({ size: 10, binary: true });
@@ -142,5 +158,52 @@ describe("image zoom", () => {
     expect(next).toEqual({ z: 2, x: -90, y: -30 });
     expect(next.x + 100 * next.z).toBe(110);
     expect(next.y + 50 * next.z).toBe(70);
+  });
+});
+
+describe("PDF layout", () => {
+  const sizes = [
+    { w: 800, h: 1000 },
+    { w: 600, h: 500 },
+    { w: 800, h: 1000 },
+  ];
+
+  it("resolves fit zooms from the widest page and caps the opening zoom", () => {
+    expect(resolveZoom("width", sizes, 1600)).toBe(2);
+    expect(resolveZoom("auto", sizes, 1600)).toBe(1.25);
+    expect(resolveZoom("auto", sizes, 400)).toBe(0.5);
+    expect(resolveZoom(3, sizes, 400)).toBe(3);
+    expect(stepPdfZoom(8, 1)).toBe(8);
+  });
+
+  it("stacks pages with gaps", () => {
+    const layout = layoutPages(sizes, 0.5);
+    expect(layout.tops).toEqual([PAGE_GAP, 512 + PAGE_GAP, 762 + PAGE_GAP + PAGE_GAP]);
+    expect(layout.width).toBe(400);
+    expect(layout.height).toBe(1250 + 4 * PAGE_GAP);
+  });
+
+  it("finds the pages around the viewport", () => {
+    const layout = layoutPages(sizes, 1);
+    expect(pageAt(layout, -50)).toBe(0);
+    expect(pageAt(layout, 500)).toBe(0);
+    expect(pageAt(layout, 1100)).toBe(1);
+    expect(pageAt(layout, 99999)).toBe(2);
+    expect(visiblePages(layout, 0, 100)).toEqual({ first: 0, last: 0 });
+    expect(visiblePages(layout, 1000, 400)).toEqual({ first: 0, last: 2 });
+  });
+
+  it("keeps the anchored page point across zooms", () => {
+    const before = layoutPages(sizes, 1);
+    const anchor = anchorAt(before, before.tops[1]! + 250);
+    expect(anchor).toEqual({ page: 1, fraction: 0.5 });
+    const after = layoutPages(sizes, 2);
+    expect(anchorY(after, anchor)).toBe(after.tops[1]! + 500);
+  });
+
+  it("caps the canvas area but keeps display density for normal pages", () => {
+    expect(canvasScale(800, 1000, 2)).toBe(2);
+    const capped = canvasScale(8000, 10000, 2);
+    expect(8000 * capped * 10000 * capped).toBeCloseTo(16 * 1024 * 1024);
   });
 });
